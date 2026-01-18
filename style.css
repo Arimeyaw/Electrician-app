@@ -1,0 +1,191 @@
+* {
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: #f4f6f8;
+}
+header {
+  background: #0a7cff;
+  color: #fff;
+  padding: 1rem;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* Layout */
+.dashboard-container {
+  display: flex;
+  min-height: calc(100vh - 70px);
+}
+.sidebar {
+  background: crimson;
+  width: 180px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+}
+.sidebar .tab-btn {
+  padding: 1rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-weight: bold;
+  border-bottom: 1px solid #eee;
+}
+.sidebar .tab-btn.active {
+  background: #0a7cff;
+  color: #fff;
+}
+main {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* Mobile tabs */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .sidebar .tab-btn {
+    text-align: center;
+    flex: 1;
+    border-bottom: none;
+    border-right: 1px solid #eee;
+  }
+  .sidebar .tab-btn:last-child {
+    border-right: none;
+  }
+}
+
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+input,
+select,
+button {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+button {
+  background: #0a7cff;
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+button.whatsapp {
+  background: #25d366;
+}
+button.delete-btn {
+  background: #f44336;
+  margin-top: 0.5rem;
+}
+h2 {
+  margin-bottom: 0.5rem;
+}
+label {
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+/* Jobs list */
+.job {
+  border-bottom: 1px solid #eee;
+  padding: 0.6rem 0;
+}
+.job:last-child {
+  border-bottom: none;
+}
+.job button {
+  margin-right: 0.5rem;
+  margin-top: 0.3rem;
+}
+.small {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* Notifications */
+.notification {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4caf50;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease, top 0.3s ease;
+}
+.notification.show {
+  opacity: 1;
+  top: 100px;
+}
+.notification.error {
+  background: #f44336;
+}
+
+/* Invoice */
+.invoice {
+  background: #fff;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 14px;
+  padding: 1rem;
+  margin: auto;
+}
+.invoice h2 {
+  text-align: center;
+}
+.invoice table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+.invoice td {
+  padding: 6px 0;
+}
+.invoice .total {
+  font-weight: bold;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+.signature {
+  margin-top: 20px;
+  text-align: center;
+}
+.signature img {
+  max-width: 180px;
+  height: auto;
+}
+.signature p {
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
