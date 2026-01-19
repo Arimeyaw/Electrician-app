@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>⚙️ Settings</header>
+
+    <div class="dashboard-container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <nav>
+          <a href="dashboard.html" class="tab-btn">Jobs & Invoices</a>
+          <a href="settings.html" class="tab-btn active">Settings</a>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <main>
+        <!-- Notification -->
+        <div id="notification" class="notification hidden"></div>
+
+        <!-- ================= COMPANY INFO ================= -->
+        <section class="card" id="companySection">
+          <h2>Company Information</h2>
+
+          <!-- Form -->
+          <div id="companyForm">
+            <input id="companyName" placeholder="Company Name" />
+            <input id="electricianName" placeholder="Electrician Name" />
+            <input id="companyPhone" placeholder="Phone Number" />
+
+            <label>Company Logo</label>
+            <input type="file" id="companyLogo" accept="image/*" />
+
+            <label>Signature</label>
+            <input type="file" id="companySignature" accept="image/*" />
+
+            <button id="saveCompanyBtn">Save Company Info</button>
+          </div>
+
+          <!-- Display (shown after save) -->
+          <div id="companyDisplay" class="hidden">
+            <!-- JS will render company info here -->
+          </div>
+        </section>
+
+        <!-- ================= ROOM TYPES ================= -->
+        <section class="card">
+          <h2>Room Types & Materials (Per Room)</h2>
+
+          <!-- Add Room Type -->
+          <div id="roomTypeForm">
+            <input id="roomTypeName" placeholder="Room Type (e.g Bedroom)" />
+
+            <div class="grid-2">
+              <input id="rtBulb" type="number" placeholder="Bulbs per room" />
+              <input
+                id="rtSwitch"
+                type="number"
+                placeholder="Switches per room"
+              />
+              <input
+                id="rtSocket"
+                type="number"
+                placeholder="Sockets per room"
+              />
+              <input
+                id="rtWire15"
+                type="number"
+                placeholder="1.5mm wire (meters)"
+              />
+              <input
+                id="rtWire25"
+                type="number"
+                placeholder="2.5mm wire (meters)"
+              />
+            </div>
+
+            <button id="addRoomTypeBtn">Add Room Type</button>
+          </div>
+
+          <!-- Existing Room Types -->
+          <div id="roomTypesList">
+            <!-- JS will render room types here -->
+          </div>
+        </section>
+
+        <!-- ================= MATERIAL PRICES ================= -->
+        <section class="card">
+          <h2>Material Prices (Optional)</h2>
+
+          <div id="priceList" class="settings-list">
+            <!-- JS will render saved prices -->
+          </div>
+
+          <div class="material-inputs">
+            <input
+              id="newPriceMaterialName"
+              placeholder="Material name (e.g LED Bulb)"
+            />
+            <input id="newPriceValue" type="number" placeholder="Price (₵)" />
+            <button id="addPriceBtn" class="small-btn">Add Price</button>
+          </div>
+        </section>
+        <!-- ================= BACKUP / RESTORE ================= -->
+        <section class="card">
+          <h2>Backup & Restore</h2>
+
+          <button id="backupBtn">Backup Data</button>
+
+          <label>Restore Backup</label>
+          <input type="file" id="restoreInput" accept=".json" />
+
+          <button id="clearAllBtn" class="danger">Clear All Data</button>
+        </section>
+      </main>
+    </div>
+
+    <script src="settings.js"></script>
+  </body>
+</html>
