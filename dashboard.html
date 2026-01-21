@@ -1,14 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Electrician Dashboard</title>
     <link rel="stylesheet" href="style.css" />
+
+    <!-- REQUIRED for PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   </head>
   <body>
-    <header><h1>⚡ Electrician Dashboard</h1></header>
+    <header>
+      <h1>⚡ Electrician Dashboard</h1>
+    </header>
+
     <div class="dashboard-container">
       <aside class="sidebar">
         <nav>
@@ -16,43 +21,51 @@
           <a href="settings.html" class="tab-btn">Settings</a>
         </nav>
       </aside>
+
       <main>
         <div id="notification" class="notification hidden"></div>
+
+        <!-- NEW JOB -->
         <div class="card">
           <h2>New Job</h2>
+
           <input id="customer" placeholder="Customer Name" />
           <input id="phone" placeholder="Phone Number" />
           <input id="location" placeholder="Location" />
-          <select id="jobType">
-            <option value="full">Full House Wiring</option>
-            <option value="rewire">Rewiring</option>
-            <option value="extension">Additional Points</option>
-          </select>
-          <label>Number of Rooms</label>
+
+          <label>Rooms</label>
           <input id="roomsCount" type="number" min="1" value="1" />
-          <div id="rooms"></div>
+
           <label>Material Quality</label>
           <select id="quality">
             <option value="economy">Economy</option>
             <option value="standard" selected>Standard</option>
             <option value="premium">Premium</option>
           </select>
-          <button id="saveJobBtn">Save Job / Estimate</button>
+
+          <button id="saveJobBtn">Save Job</button>
         </div>
+
+        <!-- JOBS -->
         <div class="card">
-          <h2>Existing Jobs</h2>
+          <h2>Saved Jobs</h2>
           <div id="jobs"></div>
         </div>
+
+        <!-- INVOICE -->
         <div class="card">
-          <h2>Invoice Viewer</h2>
+          <h2>Invoice</h2>
+
           <div id="invoiceWrapper">
-            <div class="invoice" id="invoiceContent"></div>
+            <div id="invoiceContent" class="invoice"></div>
           </div>
+
           <button id="downloadPDFBtn">Download PDF</button>
-          <button id="whatsappBtn" class="whatsapp">Share via WhatsApp</button>
+          <button id="whatsappBtn" class="whatsapp">WhatsApp PDF</button>
         </div>
       </main>
     </div>
+
     <script src="dashboard.js"></script>
   </body>
 </html>

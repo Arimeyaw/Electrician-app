@@ -1,154 +1,205 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const notification = document.getElementById("notification");
   const customer = document.getElementById("customer");
   const phone = document.getElementById("phone");
   const locationEl = document.getElementById("location");
-  const jobType = document.getElementById("jobType");
   const roomsCount = document.getElementById("roomsCount");
-  const roomsDiv = document.getElementById("rooms");
   const quality = document.getElementById("quality");
+
   const saveJobBtn = document.getElementById("saveJobBtn");
   const jobsDiv = document.getElementById("jobs");
   const invoiceContent = document.getElementById("invoiceContent");
+
   const downloadPDFBtn = document.getElementById("downloadPDFBtn");
   const whatsappBtn = document.getElementById("whatsappBtn");
+  const notification = document.getElementById("notification");
 
-  let editingJobId = null;
   let activeInvoice = null;
-  const BRANDS = { economy:"Local/Generic", standard:"Nexans/Philips", premium:"Prysmian/Osram" };
 
-  function showNotification(msg,type="success"){
-    notification.innerText=msg;
-    notification.className="notification show";
-    if(type==="error") notification.classList.add("error");
-    setTimeout(()=>notification.className="notification hidden",2500);
+  const BRANDS = {
+    economy: "Local / Generic",
+    standard: "Philips / Nexans",
+    premium: "Osram / Prysmian",
+  };
+
+  function notify(msg, error = false) {
+    notification.innerText = msg;
+    notification.className = "notification show";
+    if (error) notification.classList.add("error");
+    setTimeout(() => (notification.className = "notification hidden"), 2500);
   }
 
-  function getPrices(){ return JSON.parse(localStorage.getItem("prices"))||{ bulb:25,switch:20,socket:35,wire15:12,wire25:18 }; }
+  /* ================= MATERIALS FROM SETTINGS ================= */
 
-  function renderRooms(){
-    roomsDiv.innerHTML="";
-    for(let i=0;i<+roomsCount.value;i++){
-      const sel=document.createElement("select");
-      sel.classList.add("room");
-      sel.innerHTML=`<option value="small">Small Room</option><option value="medium">Medium Room</option><option value="large">Large Room</option>`;
-      roomsDiv.appendChild(sel);
-    }
-  }
-  roomsCount.addEventListener("input", renderRooms);
+  function getRoomMaterials(roomCount) {
+    const roomTypes = JSON.parse(localStorage.getItem("roomTypes")) || [];
 
-  function estimate(rooms){
-    let bulbs=0,switches=0,sockets=0,wire15=0,wire25=0;
-    rooms.forEach(size=>{
-      bulbs+=2; switches+=2; let s=2;
-      if(size==="medium") s+=1;
-      if(size==="large") s+=2;
-      sockets+=s; wire15+=15; wire25+=s*5;
+    let total = { bulb: 0, switch: 0, socket: 0, wire15: 0, wire25: 0 };
+
+    roomTypes.forEach((rt) => {
+      total.bulb += rt.bulb * roomCount;
+      total.switch += rt.switch * roomCount;
+      total.socket += rt.socket * roomCount;
+      total.wire15 += rt.wire15 * roomCount;
+      total.wire25 += rt.wire25 * roomCount;
     });
-    const p=getPrices();
-    const cost=bulbs*p.bulb+switches*p.switch+sockets*p.socket+wire15*p.wire15+wire25*p.wire25;
-    return {bulbs,switches,sockets,wire15,wire25,cost};
+
+    return total;
   }
 
-  function renderJobs(){
-    const jobs=JSON.parse(localStorage.getItem("jobs"))||[];
-    jobsDiv.innerHTML="";
-    jobs.forEach(j=>{
-      const jobCard=document.createElement("div");
-      jobCard.classList.add("job");
-
-      const delBtn=document.createElement("button");
-      delBtn.classList.add("delete-btn"); delBtn.innerText="🗑"; delBtn.onclick=()=>deleteJob(j.id);
-
-      const infoDiv=document.createElement("div");
-      infoDiv.classList.add("job-info");
-      infoDiv.innerHTML=`<strong>${j.customer}</strong><br/><span class="small">Rooms: ${j.rooms} | Est: ₵${j.estimate.cost}</span>`;
-      const editBtn=document.createElement("button"); editBtn.classList.add("edit-btn"); editBtn.innerText="✏️"; editBtn.onclick=()=>editJob(j.id);
-      const invoiceBtn=document.createElement("button"); invoiceBtn.classList.add("small-btn"); invoiceBtn.innerText="Invoice"; invoiceBtn.onclick=()=>openInvoice(j.id);
-
-      infoDiv.appendChild(editBtn); infoDiv.appendChild(invoiceBtn);
-
-      jobCard.appendChild(delBtn); jobCard.appendChild(infoDiv);
-      jobsDiv.appendChild(jobCard);
-    });
+  function getPrices() {
+    return (
+      JSON.parse(localStorage.getItem("prices")) || {
+        bulb: 25,
+        switch: 20,
+        socket: 35,
+        wire15: 12,
+        wire25: 18,
+      }
+    );
   }
 
-  function saveJob(){
-    const rooms=[...document.querySelectorAll(".room")].map(r=>r.value);
-    const est=estimate(rooms);
-    let jobs=JSON.parse(localStorage.getItem("jobs"))||[];
+  function calculateCost(mat) {
+    const p = getPrices();
+    return (
+      mat.bulb * p.bulb +
+      mat.switch * p.switch +
+      mat.socket * p.socket +
+      mat.wire15 * p.wire15 +
+      mat.wire25 * p.wire25
+    );
+  }
 
-    if(editingJobId){
-      const idx=jobs.findIndex(j=>j.id===editingJobId);
-      jobs[idx]={id:editingJobId, customer:customer.value, phone:phone.value, location:locationEl.value, jobType:jobType.value, rooms:rooms.length, estimate:est, brand:BRANDS[quality.value]};
-      showNotification("Job updated ✔"); editingJobId=null;
-    }else{
-      jobs.unshift({id:Date.now(), customer:customer.value, phone:phone.value, location:locationEl.value, jobType:jobType.value, rooms:rooms.length, estimate:est, brand:BRANDS[quality.value]});
-      showNotification("Job saved ✔");
+  /* ================= SAVE JOB ================= */
+
+  saveJobBtn.onclick = () => {
+    if (!customer.value) {
+      notify("Customer name required", true);
+      return;
     }
-    localStorage.setItem("jobs",JSON.stringify(jobs));
-    renderJobs(); customer.value=phone.value=locationEl.value=""; roomsCount.value=1; renderRooms();
-  }
-  saveJobBtn.addEventListener("click",saveJob);
 
-  window.editJob=function(id){
-    const jobs=JSON.parse(localStorage.getItem("jobs"))||[];
-    const job=jobs.find(j=>j.id===id); if(!job) return;
-    editingJobId=id; customer.value=job.customer; phone.value=job.phone; locationEl.value=job.location; jobType.value=job.jobType; roomsCount.value=job.rooms; renderRooms();
-    showNotification("Editing job ✔");
-  }
+    const rooms = +roomsCount.value;
+    const materials = getRoomMaterials(rooms);
+    const cost = calculateCost(materials);
 
-  window.deleteJob=function(id){
-    let jobs=JSON.parse(localStorage.getItem("jobs"))||[];
-    jobs=jobs.filter(j=>j.id!==id);
-    localStorage.setItem("jobs",JSON.stringify(jobs));
+    const job = {
+      id: Date.now(),
+      invoiceNo: `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Date.now()}`,
+      date: new Date().toLocaleDateString(),
+      customer: customer.value,
+      phone: phone.value,
+      location: locationEl.value,
+      rooms,
+      materials,
+      cost,
+      brand: BRANDS[quality.value],
+    };
+
+    const jobs = JSON.parse(localStorage.getItem("jobs")) || [];
+    jobs.unshift(job);
+    localStorage.setItem("jobs", JSON.stringify(jobs));
+
+    customer.value = phone.value = locationEl.value = "";
+    notify("Job saved ✔");
     renderJobs();
-    showNotification("Job deleted ✔");
+  };
+
+  /* ================= RENDER JOBS ================= */
+
+  function renderJobs() {
+    const jobs = JSON.parse(localStorage.getItem("jobs")) || [];
+    jobsDiv.innerHTML = "";
+
+    jobs.forEach((j) => {
+      const div = document.createElement("div");
+      div.className = "job";
+
+      div.innerHTML = `
+        <strong>${j.customer}</strong>
+        <small>Invoice: ${j.invoiceNo}</small>
+        <button class="small-btn">Invoice</button>
+      `;
+
+      div.querySelector("button").onclick = () => openInvoice(j.id);
+      jobsDiv.appendChild(div);
+    });
   }
 
-  window.openInvoice=function(id){
-    const jobs=JSON.parse(localStorage.getItem("jobs"))||[];
-    const j=jobs.find(j=>j.id===id); if(!j) return; activeInvoice=j;
-    const company=JSON.parse(localStorage.getItem("company"))||{};
-    const logo=company.companyLogo||""; const sign=company.companySignature||""; const companyName=company.companyName||""; const electrician=company.electricianName||"";
+  /* ================= INVOICE ================= */
 
-    const logoHTML=logo?`<div style="text-align:center;margin-bottom:10px;"><img src="${logo}" style="max-width:150px;"></div>`:"";
-    const signatureHTML=sign?`<div class="signature"><img src="${sign}" /><p>Authorized Signature</p></div>`:"";
+  function openInvoice(id) {
+    const jobs = JSON.parse(localStorage.getItem("jobs")) || [];
+    const j = jobs.find((x) => x.id === id);
+    if (!j) return;
 
-    invoiceContent.innerHTML=`
-      ${logoHTML}
-      <h3>${companyName}</h3>
-      <p class="small">${electrician}</p>
+    activeInvoice = j;
+
+    const company = JSON.parse(localStorage.getItem("company")) || {};
+
+    invoiceContent.innerHTML = `
+      <div style="text-align:right;font-size:12px">
+        <strong>Invoice No:</strong> ${j.invoiceNo}<br>
+        <strong>Date:</strong> ${j.date}
+      </div>
+
+      <h3>${company.companyName || ""}</h3>
+      <p class="small">${company.electricianName || ""}</p>
+
       <p><strong>Customer:</strong> ${j.customer}</p>
-      <p><strong>Phone:</strong> ${j.phone}</p>
       <p><strong>Location:</strong> ${j.location}</p>
+
       <table>
-        <tr><td>Bulbs</td><td>${j.estimate.bulbs}</td></tr>
-        <tr><td>Switches</td><td>${j.estimate.switches}</td></tr>
-        <tr><td>Sockets</td><td>${j.estimate.sockets}</td></tr>
-        <tr><td>1.5mm Cable (m)</td><td>${j.estimate.wire15}</td></tr>
-        <tr><td>2.5mm Cable (m)</td><td>${j.estimate.wire25}</td></tr>
-        <tr class="total"><td>Total</td><td>₵${j.estimate.cost}</td></tr>
+        <tr><td>Bulbs</td><td>${j.materials.bulb}</td></tr>
+        <tr><td>Switches</td><td>${j.materials.switch}</td></tr>
+        <tr><td>Sockets</td><td>${j.materials.socket}</td></tr>
+        <tr><td>1.5mm Cable</td><td>${j.materials.wire15} m</td></tr>
+        <tr><td>2.5mm Cable</td><td>${j.materials.wire25} m</td></tr>
+        <tr class="total"><td>Total</td><td>₵${j.cost}</td></tr>
       </table>
-      <p class="small">Recommended brands: ${j.brand}</p>
-      ${signatureHTML}
+
+      <p class="small">Recommended Brand: ${j.brand}</p>
     `;
   }
 
-  downloadPDFBtn.addEventListener("click",()=>{
-    if(!activeInvoice){ showNotification("No invoice selected ❌","error"); return; }
-    const images=invoiceContent.querySelectorAll("img");
-    let loadedCount=0;
-    if(images.length===0) html2pdf().from(invoiceContent).save();
-    images.forEach(img=>{if(img.complete){loadedCount++; if(loadedCount===images.length) html2pdf().from(invoiceContent).save();} else{img.onload=img.onerror=()=>{loadedCount++; if(loadedCount===images.length) html2pdf().from(invoiceContent).save();}}});
-  });
+  /* ================= PDF ================= */
 
-  whatsappBtn.addEventListener("click",()=>{
-    if(!activeInvoice){ showNotification("No invoice selected ❌","error"); return; }
-    const j=activeInvoice;
-    const text=`Electrical Job Invoice\nCustomer: ${j.customer}\nRooms: ${j.rooms}\nTotal Cost: ₵${j.estimate.cost}\nSent via Electrician App`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,"_blank");
-  });
+  downloadPDFBtn.onclick = () => {
+    if (!activeInvoice) {
+      notify("No invoice selected", true);
+      return;
+    }
 
-  renderRooms(); renderJobs();
+    html2pdf()
+      .set({
+        filename: `${activeInvoice.invoiceNo}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { format: "a4" },
+      })
+      .from(invoiceContent)
+      .save();
+  };
+
+  /* ================= WHATSAPP PDF ================= */
+
+  whatsappBtn.onclick = async () => {
+    if (!activeInvoice) {
+      notify("No invoice selected", true);
+      return;
+    }
+
+    await html2pdf()
+      .set({
+        filename: `${activeInvoice.invoiceNo}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { format: "a4" },
+      })
+      .from(invoiceContent)
+      .save();
+
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent("Invoice PDF downloaded. Please attach it here.")}`,
+      "_blank",
+    );
+  };
+
+  renderJobs();
 });
